@@ -29,9 +29,10 @@ const webpackConfig  = {
    output: {
     filename: './assets/[name]-[hash:5].js',
     path: path.resolve(__dirname, 'release/three-demo'),
-    library: 'THREE',
-    libraryTarget: 'umd',
-    globalObject: 'this'
+    /*只打包three.js 库使用*/
+    // library: 'THREE', 
+    // libraryTarget: 'umd',
+    // globalObject: 'this'
     // libraryExport: 'default',
    },
    plugins:[

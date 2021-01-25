@@ -8,11 +8,7 @@ const webpackConfig  = {
    },
    output: {
     filename: './assets/[name].js',
-    path: path.resolve(__dirname, './release/three-demo'),
-    library: 'THREE',
-    libraryTarget: 'umd',
-    globalObject: 'this'
-    // libraryExport: 'default',
+    path: path.resolve(__dirname, './release/three-demo')
    },
    devServer:{
      host:'0.0.0.0',

@@ -13,14 +13,16 @@ import xsr_fbx_texture from './model/xsr/Stormland Robo 03H.png'
 
 import xsr_fbx_logo_texture from './model/xsr/stormland_logo.png'
 
+
  const models = [
-              
+                {name:'机器头',path:require('./model/DamagedHelmet.glb').default,position:[0, 0, 5],type:'glb'},
                 {name:'白龙纹眉瓶',path:hp_glb,position:[0, 0, 50],type:'glb'
                  },
                 {name:'像素人',path:xsr_fbx,position:[0, 0, 50],type:'fbx',
                 texture:[{name:'gardener,hologram_2,hologram',path:xsr_fbx_texture},
                          {name:'Plane',path:xsr_fbx_logo_texture}],
                  }, 
+                
                 // {name:'石狮',path:shishi,position:[0, 0, 2000]},
                 // {name:'北齐大日如来',path:rulai,position:[0, 0, 2000]},
                 // {name:'彩绘侍女俑',path:ny,position:[0, 0, 50]},
@@ -401,6 +403,7 @@ const modelScene={
 
       },
       animation:function(){
+
           //更新控制器
             this.Renderer.render(this.Scene, this.Camera);
             this.TestStats.update();
