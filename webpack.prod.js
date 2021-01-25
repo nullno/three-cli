@@ -38,7 +38,7 @@ const webpackConfig  = {
    plugins:[
     new CleanWebpackPlugin(),
     new HWP({
-       title:'古董物件鉴赏-3D',
+       title:'Three-demo-3d',
        template:'./src/html/index.ejs',
     })
    ],
