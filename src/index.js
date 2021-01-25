@@ -5,10 +5,10 @@ import  *as THREE from './lib.js';
 
 import BG from './model/environment/bg.jpeg'
 
-import hp_glb from './model/G1211/G1211.glb'
+//模型
 import xsr_fbx from './model/xsr/xsr.fbx'
 
-
+//纹理贴图
 import xsr_fbx_texture from './model/xsr/Stormland Robo 03H.png'
 
 import xsr_fbx_logo_texture from './model/xsr/stormland_logo.png'
@@ -16,18 +16,11 @@ import xsr_fbx_logo_texture from './model/xsr/stormland_logo.png'
 
  const models = [
                 {name:'机器头',path:require('./model/DamagedHelmet.glb').default,position:[0, 0, 5],type:'glb'},
-                {name:'白龙纹眉瓶',path:hp_glb,position:[0, 0, 50],type:'glb'
-                 },
                 {name:'像素人',path:xsr_fbx,position:[0, 0, 50],type:'fbx',
-                texture:[{name:'gardener,hologram_2,hologram',path:xsr_fbx_texture},
+                texture:[
+                         {name:'gardener,hologram_2,hologram',path:xsr_fbx_texture},
                          {name:'Plane',path:xsr_fbx_logo_texture}],
                  }, 
-                
-                // {name:'石狮',path:shishi,position:[0, 0, 2000]},
-                // {name:'北齐大日如来',path:rulai,position:[0, 0, 2000]},
-                // {name:'彩绘侍女俑',path:ny,position:[0, 0, 50]},
-                // {name:'景德镇花瓶',path:hp,position:[0, 0, 50]},
-                // {name:'饕餮青铜铸壶',path:qth,position:[0, 0, 50]}
                 
                ]
 
@@ -137,8 +130,9 @@ const modelScene={
                   this.Model = 'fbx'.indexOf(MTYPE)!=-1?geometry:geometry.scene;
                   
                  
-
+                   //遍历模型字节点，获取相关参数设置
                   this.Model.traverse(function(child) {
+
                       if(MODEL.texture){
                         
                         MODEL.texture.map(item=>{
@@ -161,7 +155,7 @@ const modelScene={
                               child.castShadow = true
                               child.receiveShadow = true
 
-                              child.material.transparent=true;//材质允许透明
+                              child.material.transparent=true;//材质允许透明 如果有玻璃材质时开启
                               child.material.opacity=1;//材质默认透明度                        
                             
                           }
@@ -171,6 +165,7 @@ const modelScene={
                   //模型自动居中
                   THREE.ModelAutoCenter(this.Model)
               
+                  //查找模型动画，
                   if(this.Model.animations.length>0){
 
                        this.AnimationMixer = new THREE.AnimationMixer(this.Model);
@@ -181,26 +176,28 @@ const modelScene={
                         this.AnimationMixer.clipAction(animationClip).play();
                         */
                   }
-              
+
+
+                  //把模型放入场景中
                   this.Scene.add(this.Model);
 
-                  
+                  //加载完成后开始自动播放
                   setTimeout(()=>{
                      loadTip.style.display='none';
                      this.Controls.autoRotate = true;
-                  
                    },1000);
                   
                 },
                 (xhr)=>{
+                   //加载进度
                    loadTip.textContent=(parseInt(xhr.loaded/xhr.total*100))+'%加载中...';
               
                 },
-               );
                 (err)=>{
                     loadTip.textContent='模型加载失败！'
                     console.log('模型加载失败！')
                 }
+              );
       },
       //加载光源
       addLight:function(){

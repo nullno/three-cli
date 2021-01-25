@@ -1,7 +1,11 @@
 # three 项目开发
-https://github.com/nullno/three-cli
 
-使用
+github:https://github.com/nullno/three-cli
+
+demo:https://source.nullno.com/three-demo/
+
+
+# 使用
 
 ```
  开发 npm run dev
