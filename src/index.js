@@ -14,15 +14,155 @@ import xsr_fbx_texture from './model/xsr/Stormland Robo 03H.png'
 import xsr_fbx_logo_texture from './model/xsr/stormland_logo.png'
 
 
+//模型列表
  const models = [
-                {name:'机器头',path:require('./model/DamagedHelmet.glb').default,position:[0, 0, 5],type:'glb'},
+                {name:'人物',
+                path:require('./model/stacy/stacy_lightweight.glb').default,
+                position:[0, 0, 5],
+                type:'glb',
+                texture:{name:'stacy',path:require('./model/stacy/stacy.jpg').default,setting:{flipY:false}},
+                autoRotate:false,
+                 init(Model,geometry){
+                 
+                    const stacy_txt =new THREE.TextureLoader().load(this.texture.path);
+                          stacy_txt.flipY = false;
+                    const material = new THREE.MeshPhongMaterial({
+                                                   map: stacy_txt,
+                                                   color: 0xffffff,
+                                                   skinning: true
+                                                 });
+                 
+
+                      Model.traverse(function(child) {
+                                 if (child.isMesh) {
+                                       child.material = material
+                                  }
+                                  //设置两个即将要操作的对象节点
+                                  if (child.isBone && child.name === 'mixamorigNeck') {
+                                    Model._neck = child;
+                                  }
+                                  if (child.isBone && child.name === 'mixamorigSpine') {
+                                    Model._waist = child;
+                                  }
+                            } 
+                         );
+
+                    
+                     
+                       let fileAnimations = geometry.animations;
+                  
+                        modelScene.AnimationMixer = new THREE.AnimationMixer(Model);
+
+                        // const animationClip = fileAnimations.find(animationClip => animationClip.name === "Walk");
+
+                        this.addAniControl(fileAnimations)
+                     
+
+                 },
+                 //动画控制
+                 addAniControl(Anis){
+                         
+                       const clipActions=Anis.map(item=>{
+                          let clip = modelScene.AnimationMixer.clipAction(item);
+                              clip.name = item.name;
+                            return clip;
+                        });
+                         
+                        const playAni = function(ani){
+                              if(ani.name=='idle'){
+                                  ani.play();
+                                  return;
+                              }else{
+                                ani.setLoop(THREE.LoopOnce);
+                                ani.reset();
+                                ani.play();
+                                defaultAni.crossFadeTo(ani, 0.25, true);
+                                setTimeout(function () {
+                                  defaultAni.enabled = true;
+                                  ani.crossFadeTo(defaultAni, 0.25, true);
+                                }, (ani._clip.duration - 0.5) * 1000);
+                              }
+                         }
+                         //默认播放
+                         const defaultAni = clipActions[8];
+                         playAni(defaultAni)
+
+                          //动作列表
+                          if(!document.querySelector('#anisPanelStyle')){
+                          var anisPanelStyle = document.createElement('style');
+                           anisPanelStyle.type = "text/css";
+                           anisPanelStyle.id='anisPanelStyle';
+                           anisPanelStyle.innerText +='#anisPanel{position:fixed;display:flex;flex-wrap:wrap;justify-content:center; width:100%;bottom:15%;left:50%;transform:translate(-50%,0); color:#515151;cursor:pointer;}\
+                               #anisPanel li{line-height:30px;text-align:center;border:1px solid #fff; font-size:14px;margin:10px;width:50px;height:50px;line-height:50px;overflow:hidden; border-radius:50px;background:rgba(250,218,193,0.8);}#anisPanel li.on,#anisPanel li:hover{color:#fff;background:rgba(73,73,73,0.8);}';
+                                      
+                              document.head.insertBefore(anisPanelStyle, document.head.lastChild);
+                           }
+
+                          var anisPanel =  document.createElement('ul');
+                              anisPanel.id='anisPanel'; 
+                          
+                          clipActions.forEach(item=>{
+                             if(item.name!='idle'){
+                             let LI  =  document.createElement('li');
+                              LI.innerText=item.name;
+                              LI.onclick=function(){
+                                     const LIS = anisPanel.children;
+                                      for(let j=0; j<LIS.length; j++){
+                                           LIS[j].className='';
+                                        }
+                                this.className = this.className=='on'?'':'on';
+                                playAni(item)
+                               
+                              }
+                              anisPanel.appendChild(LI);
+                            }
+                          })
+             
+                          ThreeApp.insertBefore(anisPanel,ThreeApp.firstChild)
+
+                  
+                   
+                 }
+                },
+                {name:'机器头',path:require('./model/DamagedHelmet.glb').default,position:[0, 0, 5],type:'glb'
+                },
                 {name:'像素人',path:xsr_fbx,position:[0, 0, 50],type:'fbx',
-                texture:[
+                 texture:[
                          {name:'gardener,hologram_2,hologram',path:xsr_fbx_texture},
-                         {name:'Plane',path:xsr_fbx_logo_texture}],
-                 }, 
+                         {name:'Plane',path:xsr_fbx_logo_texture}
+                         ],
+                 init(Model){
+
+                       this.texture.map(item=>{
+                            item.textureObj= new THREE.MeshPhongMaterial({
+                                                               map: new THREE.TextureLoader().load(item.path)//颜色贴图
+                                           });
+                       });
+
+                      Model.traverse((child)=> {          
+                                              this.texture.map(item=>{
+                                                 if(item.name.indexOf(child.name)!=-1){
+                                                     child.material = item.textureObj
+                                                 }
+                                              }) 
+
+                                  } 
+                               );
+
+                        if(Model.animations.length>0){
+
+                           modelScene.AnimationMixer = new THREE.AnimationMixer(Model);
+                           modelScene.AnimationMixer.clipAction(Model.animations[0]).play();
+
+                        }
+
+                   }        
+                 },
+
                 
-               ]
+               ];
+
+
 
 const modelScene={
       State:{
@@ -99,6 +239,12 @@ const modelScene={
               const loadTip = this.addLoadTip();
              
               this.Controls.autoRotate = false;
+                    //移除其他场景
+                    const anisPanel = document.querySelector('#anisPanel')
+                     if(anisPanel){
+                      ThreeApp.removeChild(anisPanel)
+                     }
+           
                 //添加环境hdr
               MODEL.hdr && this.HdrLoader(MODEL.hdr);
              
@@ -113,12 +259,8 @@ const modelScene={
                  loadTip.textContent='请使用glb,gltf,fbx格式模型';
                  return;
               }
-        
 
-   
-             
-
-               Loader.load(MODEL.path, (geometry)=> {
+              Loader.load(MODEL.path, (geometry)=> {
                 
                   loadTip.textContent='加载完成！';
                   //移除模型  
@@ -126,29 +268,17 @@ const modelScene={
                 
                   //设置相机位置
                   this.Camera.position.set(...MODEL.position);
-              
-                  this.Model = 'fbx'.indexOf(MTYPE)!=-1?geometry:geometry.scene;
                   
-                 
-                   //遍历模型字节点，获取相关参数设置
+                  //当前模型 
+                  this.Model = 'fbx'.indexOf(MTYPE)!=-1?geometry:geometry.scene;
+                
+                    //初始化当前模型
+                  MODEL.init && MODEL.init(this.Model,geometry) 
+                 //默认遍历模型字节点，获取相关参数设置 特殊模型前往init回调中设置
                   this.Model.traverse(function(child) {
-
-                      if(MODEL.texture){
-                        
-                        MODEL.texture.map(item=>{
-                           if(item.name.indexOf(child.name)!=-1){
-                               child.material = new THREE.MeshPhongMaterial({
-                                         map: THREE.ImageUtils.loadTexture(item.path)//颜色贴图
-                                       });
-                           }
-                        }) 
-                      }   
-                       
-
                         if (child.isMesh) {
-                            
+
                               // child.material.emissiveMap = child.material.map;
-                           
                               //child.material.side = THREE.DoubleSide;
                               child.material.shininess=1;
                         
@@ -161,42 +291,44 @@ const modelScene={
                           }
                       } 
                    );
-
+                 
                   //模型自动居中
                   THREE.ModelAutoCenter(this.Model)
               
-                  //查找模型动画，
-                  if(this.Model.animations.length>0){
-
-                       this.AnimationMixer = new THREE.AnimationMixer(this.Model);
-                       this.AnimationMixer.clipAction(this.Model.animations[0]).play();
-
-                       /* 其他模型动画方案：
-                        const animationClip = this.Model.animations.find(animationClip => animationClip.name === "Walk");
-                        this.AnimationMixer.clipAction(animationClip).play();
-                        */
-                  }
-
-
-                  //把模型放入场景中
-                  this.Scene.add(this.Model);
-
                   //加载完成后开始自动播放
                   setTimeout(()=>{
                      loadTip.style.display='none';
-                     this.Controls.autoRotate = true;
+                     this.Controls.autoRotate = typeof MODEL.autoRotate ==='boolean'?MODEL.autoRotate:true;
                    },1000);
-                  
+
+              
+
+                 //把模型放入场景中
+                  this.Scene.add(this.Model);
+
+
+                    /* 模型动画方案
+                  if(this.Model.animations.length>0){
+                        // fbx
+                       this.AnimationMixer = new THREE.AnimationMixer(this.Model);
+                       this.AnimationMixer.clipAction(this.Model.animations[0]).play();
+
+                          //glb
+                        const animationClip = geometry.animations.find(animationClip => animationClip.name === "Walk");
+                        this.AnimationMixer.clipAction(animationClip).play();
+                        
+                      }
+                    */
                 },
                 (xhr)=>{
                    //加载进度
                    loadTip.textContent=(parseInt(xhr.loaded/xhr.total*100))+'%加载中...';
               
                 },
-                (err)=>{
-                    loadTip.textContent='模型加载失败！'
-                    console.log('模型加载失败！')
-                }
+                // (err)=>{
+                //     loadTip.textContent='模型加载失败！'
+                //     console.log('模型加载失败！')
+                // }
               );
       },
       //加载光源
